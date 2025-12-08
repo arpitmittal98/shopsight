@@ -46,7 +46,7 @@ function ProductDetails({ data, onBack, loading }) {
     datasets: [
       {
         label: 'Historical Sales',
-        data: [...sales.sales, null, null, null],
+        data: [...sales.sales],
         borderColor: 'rgb(102, 126, 234)',
         backgroundColor: 'rgba(102, 126, 234, 0.1)',
         tension: 0.4,
@@ -54,7 +54,8 @@ function ProductDetails({ data, onBack, loading }) {
       },
       {
         label: 'Forecast',
-        data: [...Array(sales.sales.length).fill(null), ...forecast.forecast],
+        // Start forecast from the last historical point to connect the lines
+        data: [...Array(sales.sales.length - 1).fill(null), sales.sales[sales.sales.length - 1], ...forecast.forecast],
         borderColor: 'rgb(118, 75, 162)',
         backgroundColor: 'rgba(118, 75, 162, 0.1)',
         borderDash: [5, 5],
