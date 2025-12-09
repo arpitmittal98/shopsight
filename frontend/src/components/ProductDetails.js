@@ -28,7 +28,7 @@ ChartJS.register(
 );
 
 function ProductDetails({ data, onBack, loading }) {
-  if (loading || !data) {
+  if (loading || !data || !data.product || !data.sales || !data.segments) {
     return (
       <div className="loading">
         <div className="spinner"></div>
@@ -39,14 +39,18 @@ function ProductDetails({ data, onBack, loading }) {
 
   const { product, sales, forecast, segments, personas, insights } = data;
 
-  // Prepare sales chart data with real forecast month labels
-  const forecastLabels = forecast.forecast_months || ['Next', 'Next+1', 'Next+2'];
+  // Prepare sales chart data with real forecast month labels - add safety checks
+  const salesDates = sales?.dates || [];
+  const salesData = sales?.sales || [];
+  const forecastLabels = forecast?.forecast_months || ['Next', 'Next+1', 'Next+2'];
+  const forecastData = forecast?.forecast || [];
+  
   const salesChartData = {
-    labels: [...sales.dates, ...forecastLabels],
+    labels: [...salesDates, ...forecastLabels],
     datasets: [
       {
         label: 'Historical Sales',
-        data: [...sales.sales],
+        data: [...salesData],
         borderColor: 'rgb(102, 126, 234)',
         backgroundColor: 'rgba(102, 126, 234, 0.1)',
         tension: 0.4,
@@ -55,7 +59,9 @@ function ProductDetails({ data, onBack, loading }) {
       {
         label: 'Forecast',
         // Start forecast from the last historical point to connect the lines
-        data: [...Array(sales.sales.length - 1).fill(null), sales.sales[sales.sales.length - 1], ...forecast.forecast],
+        data: salesData.length > 0 
+          ? [...Array(salesData.length - 1).fill(null), salesData[salesData.length - 1], ...forecastData]
+          : forecastData,
         borderColor: 'rgb(118, 75, 162)',
         backgroundColor: 'rgba(118, 75, 162, 0.1)',
         borderDash: [5, 5],
@@ -92,11 +98,12 @@ function ProductDetails({ data, onBack, loading }) {
     }
   };
 
-  // Prepare segment chart data
+  // Prepare segment chart data with safety checks
+  const segmentsData = segments?.segments || {};
   const segmentChartData = {
-    labels: Object.keys(segments.segments),
+    labels: Object.keys(segmentsData),
     datasets: [{
-      data: Object.values(segments.segments),
+      data: Object.values(segmentsData),
       backgroundColor: [
         'rgba(255, 107, 107, 0.8)',
         'rgba(78, 205, 196, 0.8)',
